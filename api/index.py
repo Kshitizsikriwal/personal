@@ -1,14 +1,13 @@
-import os
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import httpx
+import os
 from dotenv import load_dotenv
 
 load_dotenv()
 app = FastAPI(title="Kshitiz Resume Chatbot API")
 
-# Vercel handles CORS, but this is good for local testing
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -22,18 +21,15 @@ GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 RESUME_CONTENT = """
 Kshitiz Sikriwal – Computer Science Engineer...
-""" # Your resume content here
+"""
 
 class Query(BaseModel):
     query: str
 
-# --- KEY CHANGE FOR VERCEL ---
-# The endpoint is now the root ("/"). Vercel's file path (/api/server)
-# will route the request to this function.
 @app.post("/")
 async def query_groq(data: Query):
     if not GROQ_API_KEY:
-        return {"error": "API key not configured on the server."}
+        raise HTTPException(status_code=500, detail="API key not configured on the server.")
 
     try:
         payload = {
@@ -58,13 +54,14 @@ async def query_groq(data: Query):
             result = response.json()
 
         answer = result.get("choices", [{}])[0].get("message", {}).get("content")
-        return {"answer": answer} if answer else {"error": "No content in response from Groq API."}
+        if not answer:
+            raise HTTPException(status_code=502, detail="No content in response from Groq API.")
+        return {"answer": answer}
 
     except httpx.HTTPStatusError as e:
         print(f"HTTP error contacting Groq API: {e.response.status_code} - {e.response.text}")
-        return {"error": "Server error while processing the request."}
+        raise HTTPException(status_code=502, detail="Error contacting Groq API.")
+
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
-        return {"error": "An unexpected server error occurred."}
-
-# The __name__ == "__main__" block is not needed for Vercel but doesn't hurt to keep for local testing.
+        raise HTTPException(status_code=500, detail="An unexpected server error occurred.")
