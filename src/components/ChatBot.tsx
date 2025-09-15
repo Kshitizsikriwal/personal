@@ -59,7 +59,8 @@ const ChatBot = () => {
     try {
       // --- THIS IS THE KEY CHANGE FOR VERCEL ---
       // The URL is now relative, pointing to our serverless function.
-      const response = await axios.post('/api/server', { query: input.trim() });
+      const response = await axios.post('/api', { query: input.trim() });
+
       // ------------------------------------------
 
       const botReply: Message = {
