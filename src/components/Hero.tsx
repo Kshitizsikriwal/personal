@@ -76,7 +76,7 @@ const Hero = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             
             {/* Left Content */}
-            <div className="space-y-6 lg:space-y-8 order-2 lg:order-1 ml-6 sm:ml-10 lg:ml-18 mt-18 sm:mt-26 lg:mt-32">
+            <div className="space-y-6 lg:space-y-8 order-2 lg:order-1 ml-6 sm:ml-10 lg:ml-18 mt-24 sm:mt-26 lg:mt-32">
               
               {/* Name + Title */}
               <div className="space-y-2 lg:space-y-4">
