@@ -1,6 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo, memo } from 'react';
 import { Send, X, Minimize2, Maximize2, Plus, Trash2, ChevronDown } from 'lucide-react';
 import { chatService } from '../services/chatService';
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
+
+
 
 // --- TYPE DEFINITIONS ---
 interface Message {
@@ -36,16 +40,32 @@ const useTypewriter = (text: string) => {
       } else {
         clearInterval(timer);
       }
-    }, 20);
+    }, 5);
     return () => clearInterval(timer);
   }, [text]);
   return displayText;
 };
 
-const FormattedContent: React.FC<{ content: string, isTyping: boolean }> = ({ content, isTyping }) => {
+
+const FormattedContent: React.FC<{ content: string; isTyping: boolean }> = memo(({ content, isTyping }) => {
+  
   const formattedHtml = content
+    // Rule 1: Handle Headings (e.g., "### Some Title")
+    .replace(/^### (.*$)/gm, '<h3 class="text-lg font-semibold text-blue-400 mt-4 mb-2">$1</h3>')
+    
+    // Rule 2: Handle Ordered Lists (e.g., "1. First item")
+    .replace(/^(\d+)\. (.*$)/gm, '<div class="flex flex-row items-start my-1"><span class="text-gray-400 w-6 text-right mr-2">$1.</span><span class="flex-1">$2</span></div>')
+
+    // Rule 3: Handle Unordered Lists (e.g., "* An item")
+    // CORRECTED: This now correctly uses $1 to place the text.
+    .replace(/^\* (.*$)/gm, '<div class="flex flex-row items-start my-1"><span class="text-white w-6 text-right mr-2">&bull;</span><span class="flex-1">$1</span></div>')
+
+    // Rule 4: Handle Bold Text
     .replace(/\*\*(.*?)\*\*/g, '<strong class="text-blue-400 font-semibold">$1</strong>')
-    .replace(/`(.*?)`/g, '<code class="bg-white/10 px-1.5 py-0.5 rounded-md font-mono text-sm">$1</code>');
+    
+    // Rule 5: Handle Inline Code
+    .replace(/`(.*?)`/g, '<code class="bg-slate-800/80 border border-slate-700 rounded-md px-1.5 py-0.5 font-mono text-sm text-blue-300">$1</code>');
+    // NOTE: The .replace for newlines ('\n') has been REMOVED to fix the extra spacing.
   
   return (
     <div
@@ -53,7 +73,7 @@ const FormattedContent: React.FC<{ content: string, isTyping: boolean }> = ({ co
       dangerouslySetInnerHTML={{ __html: formattedHtml + (isTyping ? '<span class="animate-pulse">|</span>' : '') }}
     />
   );
-};
+});
 
 // Memoized AssistantMessage to prevent re-rendering and re-typing
 const AssistantMessage = memo(({ message, isLast }: { message: Message; isLast: boolean }) => {
