@@ -21,13 +21,13 @@ const Contact = () => {
     setIsSubmitting(true);
 
     // ✅ Step 3: Replace mock submission with the actual EmailJS call
-    emailjs
-      .sendForm(
-        "service_8kcsrgt", // Your Service ID from the master code
-        "template_3qtdnd8", // Your Template ID from the master code
-        e.currentTarget,   // This sends the form data directly
-        "p0kpNgkSv-5XFyK8t" // Your Public Key from the master code
-      )
+    emailjs.sendForm(
+  process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+  process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
+  e.currentTarget,
+  process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
+)
+
       .then(
         () => {
           // ✅ Step 4: Use your toast for success
